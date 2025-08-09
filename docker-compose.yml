@@ -1,0 +1,101 @@
+version: '3.10'
+
+services:
+#Redis para celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6381:6379"  # Puerto externo cambiado a 6381
+    volumes:
+      - redis_data:/data
+
+#Backend - Configuración para DESARROLLO
+  backend:
+    image: python:3.10-slim
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - backend_pip_cache:/root/.cache/pip
+    working_dir: /app
+    depends_on:
+      - redis
+    command: >
+      bash -c "
+        pip install -r requirements.txt &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  # celery Worker - Configuración para DESARROLLO
+  celery:
+    image: python:3.10-slim
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - backend_pip_cache:/root/.cache/pip
+    working_dir: /app
+    depends_on:
+      - redis
+      - backend
+    command: >
+      bash -c "
+        pip install -r requirements.txt &&
+        celery -A chatai worker --loglevel=info
+      "
+
+  # celery Beat - Configuración para DESARROLLO
+  celery_beat:
+    image: python:3.10-slim
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - backend_pip_cache:/root/.cache/pip
+    working_dir: /app
+    depends_on:
+      - redis
+      - backend
+    command: >
+      bash -c "
+        pip install -r requirements.txt &&
+        celery -A chatai beat --loglevel=info
+      "
+
+#Frontend React - Configuración para DESARROLLO
+  frontend:
+    image: node:18-alpine
+    ports:
+      - "5173:5173"  # Vite dev server por defecto usa 5173
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    command: >
+      sh -c "
+        npm install &&
+        npm run dev -- --host 0.0.0.0
+      "
+
+volumes:
+  redis_data:
+  backend_pip_cache:
+  frontend_node_modules:
+

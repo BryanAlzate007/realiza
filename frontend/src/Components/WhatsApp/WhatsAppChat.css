@@ -1,0 +1,66 @@
+.whatsapp-container {
+    display: flex;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.conversations-list {
+    width: 30%;
+    min-width: 300px;
+    background-color: white;
+    border-right: 1px solid #e1e1e1;
+    overflow-y: auto;
+}
+
+.conversation-item {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+}
+
+.conversation-item:hover {
+    background-color: #f5f5f5;
+}
+
+.conversation-item.selected {
+    background-color: #e9edef;
+}
+
+.conversation-info h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #111b21;
+}
+
+.last-message {
+    margin: 5px 0 0;
+    font-size: 14px;
+    color: #667781;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-window {
+    flex-grow: 1;
+    background-color: #efeae2;
+    position: relative;
+}
+
+.no-chat-selected {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #667781;
+    font-size: 16px;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 18px;
+    color: #667781;
+}
